@@ -1,0 +1,75 @@
+#!/usr/bin/env python
+
+import re
+import types
+import getpass
+import socket
+import smtplib
+
+smtp_server = 'localhost'
+
+# Email
+def email(recipients, subject, message, sender=None):
+    if type(recipients) is not types.ListType:
+        recipients = [recipients]
+    if not sender:
+        username = getpass.getuser()
+        hostname = socket.gethostname()
+        sender = '%s@%s' % (username, hostname)
+    try:
+        smtp = smtplib.SMTP(smtp_server)
+        smtp.sendmail(sender, recipients, message)
+    except smtplib.SMTPException:
+        print 'yelling: email: Failed to send message'
+        raise
+
+# SMS messaging
+sms_domain = {'tmobile': 'tmomail.net',
+    'virgin': 'vmobl.com',
+    'cingular': 'cingularme.com',
+    'sprint': 'messaging.sprintpcs.com',
+    'verizon': 'vtext.com',
+    'nextel': 'messaging.nextel.com',
+    'uscellular': 'email.uscc.net',
+    'suncom': 'tms.suncom.com',
+    'powertel': 'ptel.net',
+    'att': 'txt.att.net',
+    'att_mms': 'MMS.att.net',
+    'alltel': 'message.alltel.com',
+    'metropcs': 'MyMetroPcs.com',
+    'googlevoice': 'txt.voice.google.com'}
+
+def sms_carriers():
+    '''returns a list of known sms carriers'''
+    l = []
+    for carrier in sms_domain:
+        l.append(carrier)
+    return l
+
+def sms(phone, carrier, subject, message, sender=None):
+    '''sends an sms message to a phone via email. this is a little dicey since
+    carriers may change their domains at any time.
+    '''
+    # regex from ``Dive into Python''
+    # http://diveintopython.org/regular_expressions/phone_numbers.html
+    phone_pattern = re.compile(r'''
+                    # don't match beginning of string, number can start anywhere
+        (\d{3})     # area code is 3 digits (e.g. '800')
+        \D*         # optional separator is any number of non-digits
+        (\d{3})     # trunk is 3 digits (e.g. '555')
+        \D*         # optional separator
+        (\d{4})     # rest of number is 4 digits (e.g. '1212')
+        \D*         # optional separator
+        (\d*)       # extension is optional and can be any number of digits
+        $           # end of string
+        ''', re.VERBOSE)
+    phone = ''.join(phone_pattern.search(phone).groups())
+
+    try:
+        to_address = str(phone) + '@' + sms_domain[carrier]
+    except KeyError:
+        print 'yelling: sms: Unknown SMS carrier', carrier
+        raise
+
+    email(to_address, subject, message, sender)
+
