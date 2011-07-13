@@ -6,6 +6,7 @@ import getpass
 import socket
 import smtplib
 import datetime
+import urllib
 
 smtp_server = 'localhost'
 
@@ -91,4 +92,15 @@ def sms(phone, carrier, subject, message, sender=None):
         raise
 
     email(to_address, subject, message, sender)
+
+# HTTP POST
+def http_post(url, params):
+    '''post some key-value pairs to a url with an http post'''
+    try:
+        params = urllib.urlencode(params)
+    except TypeError:
+        print 'yelling: http_post: Unable to urlencode params'
+        raise
+    f = urllib.urlopen(url, params)
+    print f.read()
 
