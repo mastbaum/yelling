@@ -5,11 +5,30 @@ import types
 import getpass
 import socket
 import smtplib
+import datetime
 
 smtp_server = 'localhost'
 
+# Log to file
+def log(filename, message, service_name=None, hoststamp=True, timestamp=True):
+    '''writes a message to a log file. optionally, write a time and hostname
+    stamp like syslog. if you want to customize that, just put it in message.
+    '''
+    t = datetime.datetime.strftime(datetime.datetime.now(),'%b %d %H:%M:%S')
+    with open(filename, 'a') as f:
+        if timestamp:
+            f.write(t + ' ')
+        if hoststamp:
+            f.write(socket.gethostname() + ' ')
+        if service_name:
+            f.write(service_name + ' ')
+        if timestamp or hoststamp or service_name:
+            f.write(': ')
+        f.write(message + '\n')
+
 # Email
 def email(recipients, subject, message, sender=None):
+    '''sends a good, old-fashioned email via smtp'''
     if type(recipients) is not types.ListType:
         recipients = [recipients]
     if not sender:
