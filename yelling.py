@@ -19,21 +19,38 @@ import urllib
 smtp_server = 'localhost'
 
 # Log to file
-def log(filename, message, service_name=None, hoststamp=True, timestamp=True):
+def log(filename, message, service_name=None, hoststamp=True, timestamp=True, console=True):
     '''writes a message to a log file. optionally, write a time and hostname
     stamp like syslog. if you want to customize that, just put it in message.
     '''
-    t = datetime.datetime.strftime(datetime.datetime.now(),'%b %d %H:%M:%S')
+    m = ''
+    if timestamp:
+        t = datetime.datetime.strftime(datetime.datetime.now(),'%b %d %H:%M:%S')
+        m = m + t + ' '
+    if hoststamp:
+        m = m + socket.gethostname() + ' '
+    if service_name:
+        m = m + service_name + ' '
+    if timestamp or hoststamp or service_name:
+        m = m + ': '
+    m = m + message
     with open(filename, 'a') as f:
-        if timestamp:
-            f.write(t + ' ')
-        if hoststamp:
-            f.write(socket.gethostname() + ' ')
-        if service_name:
-            f.write(service_name + ' ')
-        if timestamp or hoststamp or service_name:
-            f.write(': ')
-        f.write(message + '\n')
+        f.write(m + '\n')
+    if console:
+        print m
+
+# Logging class so we can store some state for frequent logging
+class Log:
+    def __init__(self, filename, service_name=None, hoststamp=True, timestamp=True, console=True):
+        self.filename = filename
+        self.service_name = service_name
+        self.hoststamp = hoststamp
+        self.timestamp = timestamp
+        self.console = console
+    def write(self, message):
+        log(self.filename, message, self.service_name, self.hoststamp, self.timestamp, self.console)
+    def __str__(self):
+        return '<yelling.Log, %s' % filename
 
 # Email
 def email(recipients, subject, message, sender=None):
