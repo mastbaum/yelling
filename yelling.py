@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 
+# YELLING
+# http://github.com/mastbaum/yelling
+#
+# A tiny module for logging and notifications
+#
+# A. Mastbaum (amastbaum@gmail.com)
+#
+
 import re
 import types
 import getpass
